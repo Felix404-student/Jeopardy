@@ -8,7 +8,6 @@ Jeopardy! assignment for UMass/Springboard bootcamp, empahsis on API and JQuery
 which provides categories and clues from the televised Jeopardy show.</p>
 <div class="section" id="requirements">
 <h3>Requirements</h3>
-<p>You can see a working version of this at <a class="reference external" href="https://jeopardy-example.surge.sh/">https://jeopardy-example.surge.sh/</a>.</p>
 <ul class="simple">
 <li>The game board should be 6 categories across, 5 question down, displayed in
 a table. Above this should be a header row with the name of each category.</li>
