@@ -1,0 +1,150 @@
+/* some colors you may find useful:
+  #18168F - dark blue
+  #115ff4 - light blue
+  #060ce9 - medium blue
+  #28a200 - green
+  #8d2ab5 - pink
+  #74119c - purple
+*/
+
+body {
+  background-color: #18168F;
+}
+
+#start {
+  position:absolute;
+  top:0;
+  left:0;
+  bottom:0;
+  right:0;
+  height: 100vh;
+  width: 100vw;
+  background-color: #18168F;
+}
+
+.btn {
+  position: absolute;
+  top: 80%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  background-color: #115ff4;
+  color: white;
+  font-size: 3vw;
+  padding: 1vw 3vw;
+  border: 1px solid white;
+  font-family: 'Libre Baskerville', serif;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+#start img {
+  width: 99.5vw;
+  height: 99.5vh;
+}
+
+.playing {
+  margin-top: -150vh;
+  transition: margin-top 1.5s;
+}
+
+.ease-in {
+  margin-top: 0vh;
+  transition: margin-top 1s;
+}
+
+.game {
+  width: 99vw;
+}
+
+.board {
+  background-size: cover;
+  text-align: center;
+}
+
+td {
+  text-align: center;
+  width: 15vw;
+  height: 14.5vh;
+  max-height: 14vw;
+  border-collapse: collapse;
+  margin: 0;
+  font-family: 'Libre Baskerville', serif;
+}
+
+.category td {
+  font-size: 1.9vw;
+  font-weight: bolder;
+  color: white;
+  border: 7px solid black;
+}
+
+.hidden {
+  font-size: 4vw;
+  font-weight: bold;
+  color: gold;
+  border: 4px solid black;
+}
+
+.question {
+  font-size: medium;
+  color: white;
+  border: 3px solid black;
+  cursor: pointer;
+}
+
+.hidden:hover, .question:hover .popup-overlay:hover {
+cursor: pointer;
+}
+
+.popup-overlay {
+  position: absolute;
+  background-color: #115ff4;
+  border: 5px solid black;
+  width: 90vw;
+  height: 47vw;
+  left: 3.6vw;
+  right: 5vw;
+  top: 5vw;
+  bottom: 15vw;
+  border-radius: 15px;
+  z-index: 1;
+  position: fixed;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  -webkit-animation-name: animatetop;
+  -webkit-animation-duration: 1s;
+  animation-name: animatetop;
+  animation-duration: 1s;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.popup-content {
+  position: relative;
+  text-align: center;
+  vertical-align: middle;
+  margin: 0.5vw;
+  padding: 0;
+  border-radius: 4px;
+  font-family: 'Libre Baskerville', serif;
+  color: white;
+  font-size: 4vw;
+  font-weight: bolder;
+  cursor: pointer;
+}
+
+.newGame {
+  position: absolute;
+  top: 350%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  background-color: #28a200;
+  color: white;
+  font-size: 3vw;
+  padding: 1.5vw 3vw;
+  border: 1px solid white;
+  font-family: 'Libre Baskerville', serif;
+  cursor: pointer;
+  border-radius: 5px;
+}
