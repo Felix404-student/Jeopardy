@@ -7,8 +7,14 @@
   #74119c - purple
 */
 
+html {
+  overflow:hidden
+}
+
 body {
   background-color: #18168F;
+  max-height:100vh;
+  overflow:auto;
 }
 
 #start {
@@ -64,12 +70,13 @@ body {
 
 td {
   text-align: center;
-  width: 15vw;
-  height: 14.5vh;
+  width: 15.3vw;
+  height: 14.7vh;
   max-height: 14vw;
   border-collapse: collapse;
   margin: 0;
   font-family: 'Libre Baskerville', serif;
+  word-wrap: break-word;
 }
 
 .category td {
@@ -135,7 +142,7 @@ cursor: pointer;
 
 .newGame {
   position: absolute;
-  top: 350%;
+  top: 500%;
   left: 50%;
   -ms-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
