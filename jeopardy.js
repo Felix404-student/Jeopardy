@@ -47,79 +47,174 @@ const NUM_CATEGORIES = 6;
 const NUM_QUESTIONS_PER_CAT = 5;
 let questionsShown = NUM_CATEGORIES * NUM_QUESTIONS_PER_CAT;
 let doubleJepOffset = 0;
-
-// categories is the main data structure for the app; it looks like this:
-//  [
-//    { title: "Math",
-//      clues: [
-//        {question: "2+2", answer: 4, showing: null},
-//        {question: "1+1", answer: 2, showing: null}
-//        ...
-//      ],
-//    },
-//    { title: "Literature",
-//      clues: [
-//        {question: "Hamlet Author", answer: "Shakespeare", showing: null},
-//        {question: "Bell Jar Author", answer: "Plath", showing: null},
-//        ...
-//      ],
-//    },
-//    ...
-//  ]
-let categories = [];
+let maxGameID = 6919;
+let questionArray = [];
 let final = {};
 
-// Retrieves 12 sequential, but random categories from JService API (6 to start, 6 for Double)
-// Returns array of category ids
-async function getCategoryIds() {
-    let catIds = [];
-    let offset = 13;
-    let rand = Math.floor(Math.random() * 28150);
-    const response = await axios.get(
-        "https://jservice.io/api/categories?count=" + NUM_CATEGORIES * 2 + "&offset=" + rand
-    );
+// API/Games/GameID format
+// gives us list of at least 30 clues
+// CLUES ARE LEFT TO RIGHT, TOP TO BOTTOM OF BOARD
+/** 
+    {
+        "id": 6919,
+        "episodeId": 8493,
+        "aired": "2021-10-20",
+        "canon": true,
+        "clues": 
+            [
+                {
+                    "id": 402765,
+                    "href": "/api/clues/402765"
+                },
+                ...
+                {
+                    "id": 402808,
+                    "href": "/api/clues/402808"
+                }
+            ]
+    }
+*/
 
-    for (let i = 0; i < response.data.length; i++) {
-        // make sure we have enough questions in this category to use it!
-        while (response.data[i].clues_count < 5) {
-            let newCat = await axios.get(
-                "https://jservice.io/api/categories?count=1&offset=" + (rand - offset)
-            );
-            offset++;
-            response.data[i] = newCat.data[0];
+// API/Clues/ClueID format
+// also the same as API/Random-Clue format
+/**
+    {
+        "id": 402765,
+        "answer": "knots",
+        "question": "Electric boats are taking off like electric cars & 30 of these speed units is a common performance benchmark",
+        "value": 200,
+        "categoryId": 8873,
+        "gameId": 6919,
+        "invalidCount": 0,
+        "category":
+            {
+                "id": 8873,
+                "href": "/api/categories/8873",
+                "title": "BOATS & SHIPS",
+                "canon": true
+            },
+        "game":
+            {
+                "href": "/api/games/6919",
+                "aired": "2021-10-20",
+                "canon": true
+            },
+        "canon": true
+    }
+ */
+
+
+async function getQuestions() {
+
+    let rand = Math.floor( Math.random() * (maxGameID + 1) )
+
+     // questions for Single Jeopardy game
+    let response1 = await axios.get("https://jservice.xyz/api/games/" + rand);
+
+    // create 2D array long enough for Single Jeopardy + Double Jeopardy
+    questionArray = new Array(NUM_CATEGORIES * 2);
+
+    for (let i = 0; i < questionArray.length; i++) {
+        questionArray[i] = new Array(NUM_QUESTIONS_PER_CAT);
+    }
+    
+    let k = 0;
+    // Single Jeopardy loop
+    // For each question needed for a category (5)
+    for (let i = 0; i < NUM_QUESTIONS_PER_CAT; i++) {
+
+        // For each category on the game board (6)
+        for (let j = 0; j < NUM_CATEGORIES; j++) {
+ 
+            // For each needed question for the game board (30)
+
+                let question = await axios.get("https://jservice.xyz/api/clues/" + response1.data.clues[k].id);
+
+                // If a question is missing, replace with random question of that category (don't increment K)
+                if (i > 0 && question.data.category.title != questionArray[j][0].category) {
+                    cat = await axios.get("https://jservice.xyz/api/clues?category=" + questionArray[j][0].categoryID);
+                    question = cat.data.clues[i];
+
+                    let newClue = {
+                        question: question.question,
+                        questionID: question.id,
+                        answer: question.answer,
+                        category: question.category.title,
+                        categoryID: question.category.id,
+                        showing: null,
+                    };
+    
+                    questionArray[j][i] = newClue;
+
+                    if (question.category.title != questionArray[(j+1)%6][0].category){
+                        k++
+                    }
+                } else {
+
+                let newClue = {
+                    question: question.data.question,
+                    questionID: question.data.id,
+                    answer: question.data.answer,
+                    category: question.data.category.title,
+                    categoryID: question.data.category.id,
+                    showing: null,
+                };
+
+                questionArray[j][i] = newClue;
+                k++;
+            }
         }
-        catIds.push(response.data[i].id);
-    }
-    return catIds;
-}
-
-// Returns object with data about a category (title, first 5 questions):
-//    { title: "Literature",
-//      clues: [
-//        {question: "Hamlet Author", answer: "Shakespeare", showing: null},
-//        {question: "Bell Jar Author", answer: "Plath", showing: null},
-//        ...
-//      ],
-//    }
-async function getCategory(catId) {
-    let response = await axios.get("https://jservice.io/api/category?id=" + catId);
-    let arrClues = [];
-
-    for (let i = 0; i < 5; i++) {
-        let newClue = {
-            question: response.data.clues[i].question.toUpperCase().replace(/\\/g, ""),
-            answer: response.data.clues[i].answer.toUpperCase().replace(/\\/g, ""),
-            showing: null,
-        };
-        arrClues.push(newClue);
     }
 
-    let newCategory = {
-        title: response.data.title.toUpperCase(),
-        clues: arrClues,
-    };
+     // questions for Double Jeopardy game
+     let response2 = await axios.get("https://jservice.xyz/api/games/" + (rand +1));
 
-    return newCategory;
+    k = 0;
+    // Double Jeopardy loop
+    // For each question needed for a category (5)
+    for (let i = 0; i < NUM_QUESTIONS_PER_CAT; i++) {
+
+        // For each category on the game board (6)
+        for (let j = 0; j < NUM_CATEGORIES; j++) {
+ 
+            // For each needed question for the game board (30)
+                let question = await axios.get("https://jservice.xyz/api/clues/" + response2.data.clues[k].id);
+
+                // If a question is missing, replace with random question of that category (don't increment K)
+                if (i > 0 && question.data.category.title != questionArray[j+ NUM_CATEGORIES][0].category) {
+                    cat = await axios.get("https://jservice.xyz/api/clues?category=" + questionArray[j+ NUM_CATEGORIES][0].categoryID);
+                    question = cat.data.clues[i];
+
+                    let newClue = {
+                        question: question.question,
+                        questionID: question.id,
+                        answer: question.answer,
+                        category: question.category.title,
+                        categoryID: question.category.id,
+                        showing: null,
+                    };
+
+                    questionArray[j+NUM_CATEGORIES][i] = newClue;
+
+                    if (question.category.title != questionArray[(j+1)%6 + NUM_CATEGORIES][0].category){
+                        k++
+                    }
+                } else {
+
+                let newClue = {
+                    question: question.data.question,
+                    questionID: question.data.id,
+                    answer: question.data.answer,
+                    category: question.data.category.title,
+                    categoryID: question.data.category.id,
+                    showing: null,
+                };
+
+                questionArray[j+NUM_CATEGORIES][i] = newClue;
+                k++;
+            }
+        }
+    }
 }
 
 // Fill the HTML table#jeopardy with the categories & cells for questions.
@@ -130,7 +225,7 @@ function fillTable() {
     let $head = $(`<thead id="categories-row" class="col-2 offset-1 category"></thead>`);
     let $newTr = $(`<tr></tr>`);
     for (let i = 0; i < NUM_CATEGORIES; i++) {
-        let $newTd = $(`<td id="cat-` + i + `">` + categories[i].title + `</td>`);
+        let $newTd = $(`<td id="cat-` + i + `">` + questionArray[i][0].category + `</td>`);
         $newTr.append($newTd);
     }
     $head.append($newTr);
@@ -163,15 +258,15 @@ function handleClick(evt) {
     let q = evt.id[0];
     let $td = $("#" + evt.id);
 
-    if (categories[cat].clues[q].showing === null) {
+    if (questionArray[cat][q].showing === null) {
         $td.html("");
         $td.removeClass("hidden");
         $td.addClass("question");
-        categories[cat].clues[q].showing = "question";
-        $td.html(categories[cat].clues[q].question);
-    } else if (categories[cat].clues[q].showing === "question") {
-        categories[cat].clues[q].showing = "answer";
-        $td.html(categories[cat].clues[q].answer);
+        questionArray[cat][q].showing = "question";
+        $td.html(questionArray[cat][q].question);
+    } else if (questionArray[cat][q].showing === "question") {
+        questionArray[cat][q].showing = "answer";
+        $td.html(questionArray[cat][q].answer);
         questionsShown--;
 
         if (questionsShown <= 0) {
@@ -183,8 +278,8 @@ function handleClick(evt) {
                 }
             }, 2000);
         }
-    } else if (categories[cat].clues[q].showing === "answer") {
-        categories[cat].clues[q].showing = "blank";
+    } else if (questionArray[cat][q].showing === "answer") {
+        questionArray[cat][q].showing = "blank";
         $td.html("");
         $td.removeClass("question");
     }
@@ -195,21 +290,16 @@ function handleClick(evt) {
 // - get data for each category
 // - create HTML table
 async function setupAndStart() {
-    // get category IDs
-    let catIds = await getCategoryIds();
-
     // get questions for each category and add to global array
-    try {
-        for (id of catIds) {
-            let newCat = await getCategory(id);
-            categories.push(newCat);
-        }
-    } catch (e) {
-        reload();
-    }
+    getQuestions().then(() => { 
 
-    // builds board, fill in category headings
-    fillTable();
+        // builds board, fill in category headings
+        setTimeout(function (){
+            fillTable();                      
+          }, 1000);
+
+    });
+
 }
 
 // Bring loading screen back in to hide transition
@@ -228,7 +318,7 @@ function doubleJeopardy() {
 
         // Update categories
         for ($cat of $cats) {
-            $cat.innerText = categories[Number($cat.id[4]) + 6].title;
+            $cat.innerText = questionArray[Number($cat.id[4]) + doubleJepOffset][0].category;
         }
 
         // Update question TDs
@@ -238,19 +328,19 @@ function doubleJeopardy() {
 
             $td.classList = "hidden";
             $td.innerHTML = `$` + 400 * (Number(q) + 1);
-            categories[cat].clues[q].showing = null;
+            questionArray[cat][q].showing = null;
         }
     }, 1000);
 }
 
 // Creates Modal popup to display final question/answer, which is pulled from the API
 async function finalJeopardy() {
-    let response = await axios.get("https://jservice.io/api/final");
+    let response = await axios.get("https://jservice.xyz/api/random-clue");
 
     final = {
-        category: response.data[0].category.title.toUpperCase(),
-        question: response.data[0].question.toUpperCase(),
-        answer: response.data[0].answer.toUpperCase(),
+        category: response.data.category.title,
+        question: response.data.question,
+        answer: response.data.answer
     };
 
     let $popup = $(
@@ -281,7 +371,7 @@ function resetDocument() {
 
     questionsShown = NUM_CATEGORIES * NUM_QUESTIONS_PER_CAT;
     doubleJepOffset = 0;
-    categories = [];
+    questionArray = []
     final = {};
     $board.empty();
 
