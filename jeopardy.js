@@ -103,6 +103,21 @@ let final = {};
     }
  */
 
+function markDowntoHTML(string) {
+    //replace the linebreaks with <br>
+    string = string.replace(/(?:\r\n|\r|\n)/g, '<br>');
+    //check for links [text](url)
+    let elements = string.match(/\[.*?\)/g);
+    if( elements != null && elements.length > 0){
+        for(el of elements){
+            let txt = el.match(/\[(.*?)\]/)[1];//get only the txt
+            let url = el.match(/\((.*?)\)/)[1];//get only the link
+            string = string.replace(el,'<a href="'+url+'" target="_blank">'+txt+'</a>')
+        }
+    }
+    return string;
+}
+
 
 async function getQuestions() {
 
@@ -136,7 +151,7 @@ async function getQuestions() {
                     question = cat.data.clues[i];
 
                     let newClue = {
-                        question: question.question,
+                        question: markDowntoHTML(question.question),
                         questionID: question.id,
                         answer: question.answer,
                         category: question.category.title,
@@ -152,7 +167,7 @@ async function getQuestions() {
                 } else {
 
                 let newClue = {
-                    question: question.data.question,
+                    question: markDowntoHTML(question.data.question),
                     questionID: question.data.id,
                     answer: question.data.answer,
                     category: question.data.category.title,
@@ -186,7 +201,7 @@ async function getQuestions() {
                     question = cat.data.clues[i];
 
                     let newClue = {
-                        question: question.question,
+                        question: markDowntoHTML(question.question),
                         questionID: question.id,
                         answer: question.answer,
                         category: question.category.title,
@@ -202,7 +217,7 @@ async function getQuestions() {
                 } else {
 
                 let newClue = {
-                    question: question.data.question,
+                    question: markDowntoHTML(question.data.question),
                     questionID: question.data.id,
                     answer: question.data.answer,
                     category: question.data.category.title,
