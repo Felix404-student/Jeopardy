@@ -76,7 +76,7 @@ td {
   border-collapse: collapse;
   margin: 0;
   font-family: 'Libre Baskerville', serif;
-  word-wrap: break-word;
+  word-wrap: normal;
 }
 
 .category td {
